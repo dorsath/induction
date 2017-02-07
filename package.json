@@ -1,0 +1,15 @@
+{
+  "name": "induction",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "watch": "watch \"npm run start\" --interval=1 --wait=3"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "watch": "^1.0.1"
+  }
+}
