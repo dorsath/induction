@@ -1,48 +1,65 @@
 console.log("Induction");
 
+var Renderer = require('./src/renderer.js');
+var ShaderLoader = require('./src/shader_loader.js');
+var TextureLoader = require('./src/texture_loader.js');
 var Vec3 = require('./src/vec3.js');
+var Line = require('./src/line.js');
+var VectorField = require('./src/vector_field.js');
 
-function Line(begin, end){
-  this.pointBegin  = begin || new Vec3();
-  this.pointEnd    = end   || new Vec3();
+var texture;
+
+var canvas = document.getElementById('game-canvas');
+var stuffToLoad = [
+  ShaderLoader.load("vector_field.vert"),
+  ShaderLoader.load("vector_field.frag"),
+  TextureLoader.load("arrow.png")
+
+
+];
+
+Renderer.setup(canvas);
+
+Promise.all(stuffToLoad).then(function(){
+  TextureLoader.buildTextures(Renderer.gl);
+  VectorField.setup();
+
+  render();
+
+
+});
+
+function render(){
+
+  Renderer.clear();
+  VectorField.render(texture);
+  //requestAnimationFrame(render);
 }
 
-Line.prototype = {
-  vector: function(){
-    return this.pointEnd.subtract(this.pointBegin);
-  },
-  fragments: function(n){
-    var result = [];
-    var vector = this.vector();
-    var step = vector.magnitude() / n;
-    console.log("vector: " , vector);
 
-    for(var i = 0; i < n; i++){
-      result.push(new Line(
-        this.pointBegin.add(vector.multiplyScalar(i * step)),
-        this.pointBegin.add(vector.multiplyScalar((i + 1) * step))
-      ));
+function buildGrid(){
+  var line = new Line(new Vec3(0, 0.5, 1), new Vec3(1, 0.5, 0.5));
+  var current = 20;
+  //var coordinate = new Vec3(0.4, 0.4, 0.5);
+
+  var vectorField = [];
+  var gridDensity = 32;
+  var xRange = [0, 1];
+  var yRange = [0, 1];
+  var zRange = [0, 1];
+  var z = 0.5;
+  for(var z = zRange[0]; z < zRange[1] * gridDensity; z++){
+    for(var y = yRange[0]; y < yRange[1] * gridDensity; y++){
+      for(var x = xRange[0]; x < xRange[1] * gridDensity; x++){
+        var B = line.calculateMagneticField(current, new Vec3(x / gridDensity, y / gridDensity, z / gridDensity), 30);
+        vectorField.push(B.x * 1e4);
+        vectorField.push(B.y * 1e4);
+        vectorField.push(B.z * 1e4);
+      }
     }
-    return result;
-  },
+  }
+  console.log("done...", vectorField.length);
+  texture = VectorField.buildDataTexture(new Float32Array(vectorField), [gridDensity, gridDensity, gridDensity]);
 }
 
-function calculateMagneticField(current, line, coordinate, nFragments){
-  var permeability = 4e-7 * Math.PI;
-  var constants = (permeability * current)/(4 * Math.PI);
-
-  return line.fragments(nFragments).map(function(fragment){
-    var r = coordinate.subtract(fragment.pointBegin);
-    var dlxr = fragment.vector().crossProduct(r.unitVector());
-    return dlxr.multiplyScalar(constants / Math.pow(r.magnitude(),2));
-  }).reduce(function(a, b) { return a.add(b); }, new Vec3());
-}
-
-var line = new Line(new Vec3(0, 1, 1), new Vec3(1, 1, 1));
-var current = 1;
-var coordinate = new Vec3(0.4, 0.9, 1);
-var magneticField = calculateMagneticField(current, line, coordinate, 100);
-
-console.log("Line: ", line);
-console.log("Coordinate: ", coordinate);
-console.log("MagneticField: ", magneticField.divideScalar(1e4), "G");
+buildGrid();

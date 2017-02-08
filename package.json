@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "watch": "watch \"npm run start\" --interval=1 --wait=3"
+    "watch": "watch \"npm run start\" --interval=1 --wait=3",
+    "dev": "budo index.js:public/js/bundle.js --serve js/bundle.js --host 127.0.0.1 --port 9966 --live --open --dir ./public -v"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "budo": "^9.4.7",
     "watch": "^1.0.1"
   }
 }
