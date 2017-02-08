@@ -38,7 +38,13 @@ function render(){
 
 
 function buildGrid(){
-  var line = new Line(new Vec3(0, 0.5, 1), new Vec3(1, 0.5, 0.5));
+  var lines = [
+    new Line(new Vec3(0, 0.25, 1), new Vec3(1, 0.25, 0.5)),
+    new Line(new Vec3(1, 0.50, 1), new Vec3(0, 0.50, 0.5)),
+    new Line(new Vec3(0, 0.75, 1), new Vec3(1, 0.75, 0.5))
+  ];
+
+
   var current = 20;
   //var coordinate = new Vec3(0.4, 0.4, 0.5);
 
@@ -51,7 +57,9 @@ function buildGrid(){
   for(var z = zRange[0]; z < zRange[1] * gridDensity; z++){
     for(var y = yRange[0]; y < yRange[1] * gridDensity; y++){
       for(var x = xRange[0]; x < xRange[1] * gridDensity; x++){
-        var B = line.calculateMagneticField(current, new Vec3(x / gridDensity, y / gridDensity, z / gridDensity), 30);
+        var B = lines.map(function(line){
+          return line.calculateMagneticField(current, new Vec3(x / gridDensity, y / gridDensity, z / gridDensity), 30);
+        }).reduce(function(a, b){ return a.add(b)}, new Vec3());
         vectorField.push(B.x * 1e4);
         vectorField.push(B.y * 1e4);
         vectorField.push(B.z * 1e4);

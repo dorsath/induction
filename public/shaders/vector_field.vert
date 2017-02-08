@@ -11,6 +11,6 @@ void main(){
   vec2 tileSize = vec2(1024);
 
   gl_Position = vec4(vertexPosition * vec2(2) - vec2(1), 0, 1);
-  relativeCoordinate = vec2(vertexPosition.x, 1.0 - vertexPosition.y);
+  relativeCoordinate = vec2(vertexPosition.x, vertexPosition.y);
 }
 
