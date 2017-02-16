@@ -1,5 +1,7 @@
 console.log("Induction");
 
+var Properties = require('./src/game_properties');
+//Properties.aspects = [window.innerWidth, window.innerHeight];
 var Renderer = require('./src/renderer.js');
 var ShaderLoader = require('./src/shader_loader.js');
 var TextureLoader = require('./src/texture_loader.js');
@@ -8,6 +10,7 @@ var Line = require('./src/line.js');
 var VectorField = require('./src/vector_field.js');
 
 var texture;
+var gridDensity = 16;
 
 var canvas = document.getElementById('game-canvas');
 var stuffToLoad = [
@@ -32,7 +35,11 @@ Promise.all(stuffToLoad).then(function(){
 function render(){
 
   Renderer.clear();
-  VectorField.render(texture);
+  for (var i = 0; i < gridDensity; i++){
+    for (var j = 0; j < gridDensity; j++){
+      VectorField.render(texture, new Vec3(i / gridDensity, j / gridDensity, 0.5), new Vec3(0, 1, 0));
+    }
+  }
   //requestAnimationFrame(render);
 }
 
@@ -49,7 +56,6 @@ function buildGrid(){
   //var coordinate = new Vec3(0.4, 0.4, 0.5);
 
   var vectorField = [];
-  var gridDensity = 32;
   var xRange = [0, 1];
   var yRange = [0, 1];
   var zRange = [0, 1];

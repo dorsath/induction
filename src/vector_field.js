@@ -2,6 +2,7 @@ let ShaderHelper = require('./shader_helper.js');
 let Renderer = require('./renderer.js');
 let TextureLoader = require('./texture_loader.js');
 
+
 module.exports = {
   setup: function(){
     let gl = Renderer.gl;
@@ -9,19 +10,29 @@ module.exports = {
     this.program = ShaderHelper.initShaders("vector_field");
     gl.useProgram(this.program);
     gl.uniform2fv(gl.getUniformLocation(this.program, "screenSize"), [gl.drawingBufferWidth, gl.drawingBufferHeight]);
+    this.arrowTexture = TextureLoader.get("arrow.png");
     this.vertexPositionAttribute = gl.getAttribLocation(this.program, "vertexPosition");
   },
-  render: function(texture){
+  render: function(texture, coordinate, vector){
     let gl = Renderer.gl;
     gl.useProgram(this.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers);
     gl.vertexAttribPointer(this.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
 
     //gl.uniform2fv(gl.getUniformLocation(this.program, "position"), position);
+    gl.uniform3fv(gl.getUniformLocation(this.program, "coordinate"), coordinate.toArray());
+    gl.uniform3fv(gl.getUniformLocation(this.program, "vector"), vector.toArray());
+    gl.uniformMatrix4fv(gl.getUniformLocation(this.program, "pMatrix"), false, Renderer.perspectiveMatrix);
+    gl.uniformMatrix4fv(gl.getUniformLocation(this.program, "vMatrix"), false, Renderer.viewMatrix);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, texture);
     gl.uniform1i(gl.getUniformLocation(this.program, "dataTexture"), 0);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this.arrowTexture);
+    gl.uniform1i(gl.getUniformLocation(this.program, "arrowTexture"), 1);
+
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   },
   buildDataTexture: function(data, aspects){

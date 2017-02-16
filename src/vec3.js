@@ -6,6 +6,9 @@ function Vec3(x, y, z){
 
 
 Vec3.prototype = {
+  toArray: function(){
+    return [this.x, this.y, this.z];
+  },
   magnitude: function(){
     return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
   },
@@ -31,6 +34,11 @@ Vec3.prototype = {
   },
   subtractScalar: function(scalar){
     return this.addScalar(-scalar);
+  },
+  dotProduct: function(other){
+    return this.x * other.x +
+           this.y * other.y +
+           this.z * other.z;
   },
   crossProduct: function(other){
     return new Vec3(
