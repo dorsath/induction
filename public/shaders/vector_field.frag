@@ -10,9 +10,11 @@ in vec4 debugColor;
 out vec4 theColor;
 
 void main(){
-  theColor = vec4(1);
   vec4 dataPoint = texture(dataTexture, vec3(relativeCoordinate));
-  theColor = abs(dataPoint);
+  if (length(theColor.w) < 0.5){
+    theColor = abs(dataPoint);
+  } else
+    discard;
   //theColor = texture(arrowTexture, relativeCoordinate);
   //if (length(theColor) > 1.1)
   //  discard;

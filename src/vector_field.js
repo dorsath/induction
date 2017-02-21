@@ -23,8 +23,6 @@ module.exports = {
     gl.uniform3fv(gl.getUniformLocation(this.program, "coordinate"), coordinate);
     gl.uniformMatrix4fv(gl.getUniformLocation(this.program, "pMatrix"), false, Renderer.pMatrix);
     gl.uniformMatrix4fv(gl.getUniformLocation(this.program, "vMatrix"), false, Renderer.vMatrix);
-    
-
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, texture);

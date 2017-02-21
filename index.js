@@ -14,31 +14,39 @@ var canvas = document.getElementById('game-canvas');
 var rotation = Math.PI / 2;
 var distance = 2;
 Brickworks.Renderer.setup(canvas);
-Brickworks.GameLoader.add(VectorField);
+Brickworks.GameLoader.add(VectorField, Line);
 Brickworks.GameLoader.load().then(function(){ return Brickworks.GameLoader.setup() } ).then(function(){
   Renderer.setView(rotation, distance);
+  for(n in lines){
+    lines[n].createVertices();
+  }
+
   render();
 
 });
 
-
-let line = new Line(vec3.fromValues(1.0, 0, 0));
 
 var texture;
 
 var z = 0.5;
 
 function render(){
+  Renderer.clear();
   let mouseMovement = MouseInput.mouseMovementThisFrame;
   let rad = mouseMovement[0] / 100;
   rotation += rad;
   Renderer.setView(rotation, distance);
+
 
   Brickworks.Renderer.clear();
   for (var i = 0; i < gridDensity; i++){
     for (var j = 0; j < gridDensity; j++){
       VectorField.render(texture, vec3.fromValues(i / gridDensity, j / gridDensity, z), vec3.fromValues(0, 1, 0));
     }
+  }
+
+  for(n in lines){
+    lines[n].render();
   }
   z = Math.min(Math.max(z + MouseInput.mouseWheelDelta[1] / 200, 0), 1);
   
@@ -48,15 +56,15 @@ function render(){
 }
 
 
+var lines = [
+  new Line(vec3.fromValues(0.6, 0.0, 0.5),vec3.fromValues(0.6, 1.0, 0.5)),
+  new Line(vec3.fromValues(0.4, 1.0, 0.5),vec3.fromValues(0.4, 0.0, 0.5)),
+];
+
 function buildGrid(){
-  var lines = [
-    new Line(vec3.fromValues(0, 0.25, 1),vec3.fromValues(1, 0.25, 0.5)),
-    new Line(vec3.fromValues(1, 0.50, 1),vec3.fromValues(0, 0.50, 0.5)),
-    new Line(vec3.fromValues(0, 0.75, 1),vec3.fromValues(1, 0.75, 0.5))
-  ];
 
 
-  var current = 20;
+  var current = 50;
   //var coordinate = new Vec3(0.4, 0.4, 0.5);
 
   var vectorField = [];
