@@ -1,54 +1,58 @@
 console.log("Induction");
-
-var Properties = require('./src/game_properties');
-//Properties.aspects = [window.innerWidth, window.innerHeight];
-var Renderer = require('./src/renderer.js');
-var ShaderLoader = require('./src/shader_loader.js');
-var TextureLoader = require('./src/texture_loader.js');
-var Vec3 = require('./src/vec3.js');
 var Line = require('./src/line.js');
+//var Vec3 = require('./src/vec3.js');
 var VectorField = require('./src/vector_field.js');
+let {vec3} = require('gl-matrix');
 
-var texture;
+let Brickworks = require('brickworks');
+let {Benchmark, Renderer, MouseInput} = Brickworks;
+
 var gridDensity = 16;
-
 var canvas = document.getElementById('game-canvas');
-var stuffToLoad = [
-  ShaderLoader.load("vector_field.vert"),
-  ShaderLoader.load("vector_field.frag"),
-  TextureLoader.load("arrow.png")
 
 
-];
-
-Renderer.setup(canvas);
-
-Promise.all(stuffToLoad).then(function(){
-  TextureLoader.buildTextures(Renderer.gl);
-  VectorField.setup();
-
+var rotation = Math.PI / 2;
+var distance = 2;
+Brickworks.Renderer.setup(canvas);
+Brickworks.GameLoader.add(VectorField);
+Brickworks.GameLoader.load().then(function(){ return Brickworks.GameLoader.setup() } ).then(function(){
+  Renderer.setView(rotation, distance);
   render();
-
 
 });
 
-function render(){
 
-  Renderer.clear();
+let line = new Line(vec3.fromValues(1.0, 0, 0));
+
+var texture;
+
+var z = 0.5;
+
+function render(){
+  let mouseMovement = MouseInput.mouseMovementThisFrame;
+  let rad = mouseMovement[0] / 100;
+  rotation += rad;
+  Renderer.setView(rotation, distance);
+
+  Brickworks.Renderer.clear();
   for (var i = 0; i < gridDensity; i++){
     for (var j = 0; j < gridDensity; j++){
-      VectorField.render(texture, new Vec3(i / gridDensity, j / gridDensity, 0.5), new Vec3(0, 1, 0));
+      VectorField.render(texture, vec3.fromValues(i / gridDensity, j / gridDensity, z), vec3.fromValues(0, 1, 0));
     }
   }
-  //requestAnimationFrame(render);
+  z = Math.min(Math.max(z + MouseInput.mouseWheelDelta[1] / 200, 0), 1);
+  
+  requestAnimationFrame(render);
+  MouseInput.resetMouseData();
+  
 }
 
 
 function buildGrid(){
   var lines = [
-    new Line(new Vec3(0, 0.25, 1), new Vec3(1, 0.25, 0.5)),
-    new Line(new Vec3(1, 0.50, 1), new Vec3(0, 0.50, 0.5)),
-    new Line(new Vec3(0, 0.75, 1), new Vec3(1, 0.75, 0.5))
+    new Line(vec3.fromValues(0, 0.25, 1),vec3.fromValues(1, 0.25, 0.5)),
+    new Line(vec3.fromValues(1, 0.50, 1),vec3.fromValues(0, 0.50, 0.5)),
+    new Line(vec3.fromValues(0, 0.75, 1),vec3.fromValues(1, 0.75, 0.5))
   ];
 
 
@@ -60,20 +64,25 @@ function buildGrid(){
   var yRange = [0, 1];
   var zRange = [0, 1];
   var z = 0.5;
+  
+  Benchmark.start("grid");
   for(var z = zRange[0]; z < zRange[1] * gridDensity; z++){
     for(var y = yRange[0]; y < yRange[1] * gridDensity; y++){
       for(var x = xRange[0]; x < xRange[1] * gridDensity; x++){
         var B = lines.map(function(line){
-          return line.calculateMagneticField(current, new Vec3(x / gridDensity, y / gridDensity, z / gridDensity), 30);
-        }).reduce(function(a, b){ return a.add(b)}, new Vec3());
-        vectorField.push(B.x * 1e4);
-        vectorField.push(B.y * 1e4);
-        vectorField.push(B.z * 1e4);
+          return line.calculateMagneticField(current,vec3.fromValues(x / gridDensity, y / gridDensity, z / gridDensity), 30);
+        }).reduce(function(a, b){ vec3.add(a, a, b); return a;}, vec3.create());
+        vectorField.push(B[0] * 1e4);
+        vectorField.push(B[1] * 1e4);
+        vectorField.push(B[2] * 1e4);
       }
     }
   }
-  console.log("done...", vectorField.length);
+
+  Benchmark.note("grid", "done");
   texture = VectorField.buildDataTexture(new Float32Array(vectorField), [gridDensity, gridDensity, gridDensity]);
+  Benchmark.note("grid", "texture");
+  Benchmark.report("grid");
 }
 
 buildGrid();

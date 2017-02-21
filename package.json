@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "budo": "^9.4.7",
+    "gl-matrix": "^2.3.2",
     "watch": "^1.0.1"
   }
 }
